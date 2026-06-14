@@ -11,11 +11,15 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Checkbox } from "@/components/ui/checkbox";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 const emailSchema = z.string().trim().email("Enter a valid email").max(255);
 const passwordSchema = z.string().min(8, "At least 8 characters").max(72);
 const nameSchema = z.string().trim().min(1, "Required").max(100);
 // E.164: +<country><number>, 8-15 digits total
+`1
 const phoneSchema = z
   .string()
   .trim()
@@ -36,6 +40,24 @@ export default function Auth() {
   const [phone, setPhone] = useState("+254");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+
+  const [rememberMe, setRememberMe] = useState(
+    () => localStorage.getItem("kifedha_remember") !== "false"
+  );
+
+  const getAuthClient = (remember: boolean) => {
+    return createClient(
+      import.meta.env.VITE_SUPABASE_URL,
+      import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      {
+        auth: {
+          storage: remember ? localStorage : sessionStorage,
+          persistSession: remember,
+          autoRefreshToken: remember,
+        },
+      }
+    );
+  };
 
   useEffect(() => {
     if (loading || !user) return;
@@ -66,7 +88,10 @@ export default function Auth() {
         if (error) throw error;
         toast.success("Check your inbox to verify your email");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        // Save preference before signing in
+        localStorage.setItem("kifedha_remember", String(rememberMe));
+        const authClient = getAuthClient(rememberMe);
+        const { error } = await authClient.auth.signInWithPassword({
           email: emailOk.data,
           password: passOk.data,
         });
@@ -206,6 +231,27 @@ export default function Auth() {
                   />
                 </div>
               </div>
+
+              {mode === "signin" && (
+                <div
+                  className="flex items-start gap-2 cursor-pointer"
+                  onClick={() => setRememberMe((prev) => !prev)}
+                >
+                  <Checkbox
+                    checked={rememberMe}
+                    onCheckedChange={(v) => setRememberMe(!!v)}
+                    className="mt-0.5"
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <span className="text-sm font-medium">
+                      Keep me signed in on this device
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Uncheck on shared or public devices
+                    </span>
+                  </div>
+                </div>
+              )}
 
               <p className="text-xs text-muted-foreground text-center">
                 🔒 Your data is encrypted and never shared with third parties.
