@@ -15,7 +15,7 @@ const FREE_TURN_LIMIT = 6; // free users can exchange ~6 messages before paywall
 
 export default function Advisor() {
   const navigate = useNavigate();
-  const { financials, blueprint, isPremium, isTrialing, trialDaysLeft, hasCompletedOnboarding } = useApp();
+  const { financials, blueprint, isPremium, isTrialing, trialDaysLeft, hasCompletedOnboarding, appLoading } = useApp();
 
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -24,8 +24,10 @@ export default function Advisor() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!hasCompletedOnboarding) navigate("/onboarding");
-  }, [hasCompletedOnboarding, navigate]);
+    if (!appLoading && !hasCompletedOnboarding) {
+      navigate("/onboarding");
+    }
+  }, [appLoading, hasCompletedOnboarding, navigate]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });

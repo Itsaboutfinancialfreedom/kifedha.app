@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { autoCategorize, Category } from "@/lib/categorize";
 
 export default function Dashboard() {
-  const { financials, blueprint, hasCompletedOnboarding, automation, setAutomation, isPremium } = useApp();
+  const { financials, blueprint, hasCompletedOnboarding, automation, setAutomation, isPremium, appLoading } = useApp();
   const { user, profile } = useAuth();
   const { transactions, addTransaction } = useTransactions();
 
@@ -78,8 +78,8 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    if (!hasCompletedOnboarding) navigate("/");
-  }, [hasCompletedOnboarding, navigate]);
+    if (!appLoading && !hasCompletedOnboarding) navigate("/");
+  }, [appLoading, hasCompletedOnboarding, navigate]);
 
   const insights = useMemo(
     () => (financials && blueprint ? generateInsights(financials, blueprint) : []),
