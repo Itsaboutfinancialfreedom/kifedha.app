@@ -74,6 +74,7 @@ interface AppContextType {
   setAutomation: (a: AutomationSettings) => void;
   autopilots: GoalAutopilot[];
   setAutopilots: (a: GoalAutopilot[]) => void;
+  appLoading: boolean;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -98,6 +99,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem("ywb_autopilots");
     return saved ? JSON.parse(saved) : [];
   });
+  const [appLoading, setAppLoading] = useState(true);
 
   const { user } = useAuth();
 
@@ -109,7 +111,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Load financials & blueprint from Supabase when user changes
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setAppLoading(false); return; }
     (supabase.from("profiles") as any)
       .select("financials, blueprint, onboarding_completed")
       .eq("id", user.id)
@@ -130,6 +132,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setHasCompletedOnboarding(true);
           localStorage.setItem("ywb_onboarded", "true");
         }
+        setAppLoading(false);
       });
   }, [user?.id]);
 
@@ -263,6 +266,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       hasCompletedOnboarding, setHasCompletedOnboarding: handleSetOnboarded,
       automation, setAutomation,
       autopilots, setAutopilots,
+      appLoading,
     }}>
       {children}
     </AppContext.Provider>
