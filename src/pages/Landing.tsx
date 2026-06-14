@@ -1,33 +1,38 @@
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
 import { Sparkles, ArrowRight, Shield, Target, Wallet, TrendingDown, TrendingUp, Briefcase, Crown, Lock, MapPin } from "lucide-react";
-import { useEffect } from "react";
 import IncomeAllocator from "@/components/IncomeAllocator";
 
 export default function Landing() {
   const navigate = useNavigate();
-  const { user, profile, loading } = useAuth();
-
-  useEffect(() => {
-    if (loading || !user) return;
-    if (profile?.onboarding_completed) navigate("/tracker");
-    else navigate("/onboarding");
-  }, [user, profile, loading, navigate]);
-
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Hero */}
-      <div className="gradient-gold px-6 pt-16 pb-12 rounded-b-[2rem] flex-shrink-0">
+      <div className="gradient-gold px-6 pt-16 pb-14 rounded-b-[2.5rem] flex-shrink-0">
         <div className="max-w-lg mx-auto">
+          <div className="inline-flex items-center gap-2 bg-white/15 rounded-full px-3 py-1 mb-6">
+            <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+            <span className="text-[11px] font-semibold text-warning-foreground/80 uppercase tracking-wide">
+              Kenya's Financial Planning App
+            </span>
+          </div>
           <h1 className="font-display text-4xl font-bold text-warning-foreground leading-tight">
-            Kifedha
+            Plan your wealth.<br />
+            <span className="text-warning-foreground/75">Build your future.</span>
           </h1>
-          <p className="text-warning-foreground/80 text-lg mt-2 font-display font-medium">
-            Smart Financial Planning
+          <p className="text-warning-foreground/70 text-sm mt-3 leading-relaxed max-w-xs">
+            Kifedha gives every Kenyan a personalised financial blueprint — income allocation, goals, debt strategy, insurance, and an AI advisor. All in KES. All built for you.
           </p>
-          <p className="text-warning-foreground/60 text-sm mt-3 leading-relaxed max-w-xs">
-            Track income, manage expenses, allocate to goals, and build wealth — all in one place.
+          <div className="flex flex-col sm:flex-row gap-3 mt-8">
+            <button
+              onClick={() => navigate("/auth")}
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white/15 border border-white/25 text-warning-foreground font-semibold text-sm hover:bg-white/20 transition-all"
+            >
+              Sign in
+            </button>
+          </div>
+          <p className="text-warning-foreground/50 text-[11px] mt-3 text-center">
+            Free plan available · KES 1,040/month Premium · 14-day free trial
           </p>
         </div>
       </div>
