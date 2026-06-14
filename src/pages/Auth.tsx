@@ -19,7 +19,6 @@ const emailSchema = z.string().trim().email("Enter a valid email").max(255);
 const passwordSchema = z.string().min(8, "At least 8 characters").max(72);
 const nameSchema = z.string().trim().min(1, "Required").max(100);
 // E.164: +<country><number>, 8-15 digits total
-`1
 const phoneSchema = z
   .string()
   .trim()
