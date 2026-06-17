@@ -394,8 +394,16 @@ Deno.serve(async (req) => {
         status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    // Reject non-string content to prevent multimodal-array bypass of size guard
+    for (const m of messages) {
+      if (m == null || typeof m !== "object" || typeof m.content !== "string") {
+        return new Response(JSON.stringify({ error: "Invalid message content: must be a string" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
     const totalChars = messages.reduce(
-      (n: number, m: any) => n + String(m?.content ?? "").length, 0,
+      (n: number, m: any) => n + (m.content as string).length, 0,
     );
     if (totalChars > 40_000) {
       return new Response(JSON.stringify({ error: "Conversation too long" }), {
