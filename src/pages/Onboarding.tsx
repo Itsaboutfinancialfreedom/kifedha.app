@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Loader2, Plus, Trash2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { useApp, UserFinancials } from "@/context/AppContext";
+import { generateBlueprint } from "@/lib/blueprintEngine";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -90,6 +92,7 @@ const COUNTRIES = [
 export default function Onboarding() {
   const navigate = useNavigate();
   const { user, profile, loading, refreshProfile } = useAuth();
+  const { setFinancials, setBlueprint } = useApp();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
 
@@ -178,8 +181,32 @@ export default function Onboarding() {
     if (!user) return;
     setSaving(true);
     try {
-      const { error: pErr } = await supabase
-        .from("profiles")
+      const monthlyIncome = Number(income) || 0;
+      const financials: UserFinancials = {
+        monthlyIncome,
+        expenses: [],
+        totalExpenses: 0,
+        debts: debts.map((d) => ({
+          name: d.name,
+          amount: Number(d.amount) || 0,
+          interestRate: Number(d.interest_rate) || 0,
+          monthlyPayment: Number(d.min_payment) || 0,
+        })),
+        totalDebt: debts.reduce((s, d) => s + (Number(d.amount) || 0), 0),
+        dependents: depCount,
+        goals: goals.map((g) => ({
+          name: g.goal_type,
+          targetAmount: Number(g.target_amount) || 0,
+          deadline: g.target_date ? `${g.target_date}-01` : "",
+        })),
+        hasLifeInsurance: false,
+        hasHealthInsurance: false,
+        hasEmergencyFund: false,
+        emergencyFundAmount: 0,
+      };
+      const blueprint = generateBlueprint(financials);
+
+      const { error: pErr } = await (supabase.from("profiles") as any)
         .update({
           age: Number(age) || null,
           country,
@@ -192,6 +219,8 @@ export default function Onboarding() {
           risk_tolerance: riskTolerance,
           risk_score: riskTotal,
           onboarding_completed: true,
+          financials,
+          blueprint,
         })
         .eq("id", user.id);
       if (pErr) throw pErr;
@@ -223,6 +252,8 @@ export default function Onboarding() {
         if (gErr) throw gErr;
       }
 
+      setFinancials(financials);
+      setBlueprint(blueprint);
       await refreshProfile();
       toast.success("You're all set!");
       navigate("/dashboard", { replace: true });
