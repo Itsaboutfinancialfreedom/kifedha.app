@@ -166,7 +166,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("ywb_autopilots", JSON.stringify(updated));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [automation.autopilotGoals]);
 
   const handleSetFinancials = (f: UserFinancials) => {
     setFinancials(f);
