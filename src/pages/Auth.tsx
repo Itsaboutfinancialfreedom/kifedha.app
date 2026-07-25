@@ -12,8 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Checkbox } from "@/components/ui/checkbox";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 
 const emailSchema = z.string().trim().email("Enter a valid email").max(255);
 const passwordSchema = z.string().min(8, "At least 8 characters").max(72);
@@ -44,20 +42,6 @@ export default function Auth() {
     () => localStorage.getItem("kifedha_remember") !== "false"
   );
 
-  const getAuthClient = (remember: boolean) => {
-    return createClient(
-      import.meta.env.VITE_SUPABASE_URL,
-      import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      {
-        auth: {
-          storage: remember ? localStorage : sessionStorage,
-          persistSession: remember,
-          autoRefreshToken: remember,
-        },
-      }
-    );
-  };
-
   useEffect(() => {
     if (loading || !user) return;
     if (profile && !profile.onboarding_completed) navigate("/onboarding", { replace: true });
@@ -87,10 +71,10 @@ export default function Auth() {
         if (error) throw error;
         toast.success("Check your inbox to verify your email");
       } else {
-        // Save preference before signing in
+        // Save preference before signing in — the client's storage adapter
+        // reads this flag to pick localStorage vs sessionStorage.
         localStorage.setItem("kifedha_remember", String(rememberMe));
-        const authClient = getAuthClient(rememberMe);
-        const { error } = await authClient.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email: emailOk.data,
           password: passOk.data,
         });
