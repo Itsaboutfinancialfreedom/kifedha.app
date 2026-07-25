@@ -60,16 +60,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
+      setSession(sess);
+      setUser(sess?.user ?? null);
       if (sess?.user) {
-        // Session found in storage — sign out immediately
-        // so user must re-authenticate this visit.
-        // This clears the stale session from localStorage.
-        supabase.auth.signOut().then(() => {
-          setSession(null);
-          setUser(null);
-          setProfile(null);
-          setLoading(false);
-        });
+        loadProfile(sess.user.id).finally(() => setLoading(false));
       } else {
         setLoading(false);
       }
